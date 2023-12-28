@@ -1,6 +1,5 @@
 import mongoose, {Schema} from "mongoose";
-import pkg from 'jsonwebtoken';
-const { Jwt } = pkg;
+import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 const userSchema= new Schema(
     
@@ -49,27 +48,36 @@ userSchema.methods.isPasswordCorrect= async function(password){
 }
 
 userSchema.methods.generateAccessToken= function(){
-    return Jwt.sign({
+    console.log("inside access token")
+    const accessToken= jwt.sign({
         _id: this._id,
         email:this.email,
         fullname: this.fullname,
         username: this.username
     },
-    process.env.ACCESSS_TOKEN_SECRET,
     {
-        expiresIn: ACCESSS_TOKEN_EXPIRY
+        secret:process.env.ACCESSS_TOKEN_SECRET
+    },
+    {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRY
     }
     )
+    return accessToken;
 }
 userSchema.methods.generateRefreshToken= function(){
-    return Jwt.sign({
-        _id: this._id,
+  
+    const refreshToken= jwt.sign({
+        _id: this._id
     },
-    process.env.REFRESH_TOKEN_SECRET,
     {
-        expiresIn: REFRESH_TOKEN_EXPIRY
+        secret:process.env.REFRESH_TOKEN_SECRET
+    },
+    {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRY
     }
     )
+    console.log("refreshtoken: "+refreshToken);
+    return refreshToken
 }
 
 
