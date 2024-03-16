@@ -4,14 +4,14 @@ import bcrypt from "bcrypt";
 const userSchema= new Schema(
     
         {
-            username:{
+            firstName:{
                 type:String,
                 required:true,
                 lowercase:true,
                 trim:true,
-                index: true
+                
             },
-            fullname:{
+            lastName:{
                 type:String,
                 required: true,
                 trim: true
@@ -20,7 +20,8 @@ const userSchema= new Schema(
                 type:String,
                 required: true,
                 trim: true,
-                lowercase:true
+                lowercase:true,
+                index: true
             },
             password:{
                 type:String,
@@ -38,7 +39,7 @@ const userSchema= new Schema(
 userSchema.pre("save", async function(next){
     if(this.isModified("password"))
     {
-        this.password= bcrypt.hash(this.password,10);
+        this.password= await bcrypt.hash(this.password,10);
     }
     next();
 })
@@ -52,14 +53,14 @@ userSchema.methods.generateAccessToken= function(){
     const accessToken= jwt.sign({
         _id: this._id,
         email:this.email,
-        fullname: this.fullname,
-        username: this.username
+        firstName: this.firstName,
+        lastName: this.lastName
     },
+    
+        process.env.ACCESSS_TOKEN_SECRET
+    ,
     {
-        secret:process.env.ACCESSS_TOKEN_SECRET
-    },
-    {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+        expiresIn: process.env.ACCESSS_TOKEN_EXPIRY
     }
     )
     return accessToken;
@@ -69,14 +70,14 @@ userSchema.methods.generateRefreshToken= function(){
     const refreshToken= jwt.sign({
         _id: this._id
     },
-    {
-        secret:process.env.REFRESH_TOKEN_SECRET
-    },
+    
+       process.env.REFRESH_TOKEN_SECRET
+    ,
     {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRY
     }
     )
-    console.log("refreshtoken: "+refreshToken);
+
     return refreshToken
 }
 
