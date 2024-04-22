@@ -24,14 +24,13 @@ const registerUser= asyncHandler(async (req,res)=>{
     if([firstName,lastName,email,password].some((field)=>
         field?.trim()===""))
     {
-        console.log("test");
-        throw new ApiError(400, "All fields are mandetory")
+        res.status(400).json(new ApiError(400, "All fields are mandetory"))
     }
 
     const presentUser= await User.findOne({email});
     if(presentUser)
     {
-        throw new ApiError(409, "User Already present")
+        res.status(409).json(new ApiError(409, "User is Already present"))
     }
 
     const user = await User.create({
@@ -46,7 +45,7 @@ const registerUser= asyncHandler(async (req,res)=>{
     );
     if(!createdUser)
     {
-        throw new ApiError(500, "Error in creating new user");
+        res.status(500).json(new ApiError(500, "Error in creating new user")) ;
     }
 
     return res.status(201).json(
@@ -58,24 +57,22 @@ const loginUser= asyncHandler(async(req,res)=>{
     const {email, password}= req.body;
     if (!email || !password)
     {
-        throw new  ApiError(400, "Please enter email and password")
+        res.status(400).json(new  ApiError(400, "Please enter email and password"));
     }
     const user = await User.findOne({email});
     if(!user)
     {
-        throw new ApiError(404, "User Not found")
+        res.status(404).json(new ApiError(404, "User Not found")) 
     }
     const checkPassword= await user.isPasswordCorrect(password);
     if(!checkPassword)
     {
-        throw new ApiError(401, "Invalid Credentials")
+        res.status(401).json(new ApiError(401, "Invalid Credentials")) 
     }
     const {accessToken, refreshToken}= await generateAccessRefreshToken(user._id);
     user.refreshToken= refreshToken;
     console.log(user);
-    console.log("till here1 ");
     await user.save({validateBeforeSave:false})
-    console.log("till here2 ");
     const loggedInUser= await User.findById(user._id).select("-password -refreshToken");
     console.log(loggedInUser);
 
@@ -83,7 +80,6 @@ const loginUser= asyncHandler(async(req,res)=>{
         httpOnly:true,
         secure:true
     }
-    console.log("till here3 ");
     return res
             .status(200)
             .cookie("accessToken",accessToken,options)
@@ -101,19 +97,17 @@ const loginUser= asyncHandler(async(req,res)=>{
 
 const logoutUser= asyncHandler(async(req,res)=>{
     console.log("logout_req", req.user);
-      const updatedUser=await User.findByIdAndUpdate(
+        await User.findByIdAndUpdate(
         req.user._id,
         {
             $set:{
                 "refreshToken": undefined
             }
-            
         },
         {
             new:true
         }
      )
-     console.log("updated User "+updatedUser);
      const options={
         httpOnly:true,
         secure:true
@@ -133,7 +127,7 @@ const refreshAccessToken= asyncHandler(async(req,res)=>{
     console.log(incomingRefreshToken);
     if(!incomingRefreshToken)
     {
-        throw new ApiError(401, "Unauthorized Access");
+        res.status(401).json(new ApiError(401, "Unauthorized Access"));
     }
     const decodedToken= jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
     console.log(decodedToken);
@@ -141,7 +135,7 @@ const refreshAccessToken= asyncHandler(async(req,res)=>{
     console.log(user);
     if(user.refreshToken!=incomingRefreshToken)
     {
-        throw new ApiError(400,"Token mismatch occured");
+        res.status(400).json(new ApiError(400,"Token mismatch occured")) ;
     }
     const {newAccessToken,newRefreshToken}= await generateAccessRefreshToken(decodedToken._id);
     user.refreshToken= newRefreshToken;
