@@ -1,0 +1,5 @@
+{
+    "version":2,
+    "builds":[{"src":"./cluster.js", "use":"@varcel/node"}],
+    "routes":[{"src":"/(.*)", "dest":"/"}]
+}
