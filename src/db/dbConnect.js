@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import { DB_NAME } from "../constant.js";
-
+import dotenv from "dotenv";
 const  connectDb= async()=>{
     try {
         const connectionInstance=await mongoose.connect(`${process.env.MONGODB_URI}`)
