@@ -1,5 +1,5 @@
 {
     "version":2,
-    "builds":[{"src":"./cluster.js", "use":"@vercel/node"}],
+    "builds":[{"src":"./src/cluster.js", "use":"@vercel/node"}],
     "routes":[{"src":"/(.*)", "dest":"/"}]
 }
